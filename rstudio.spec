@@ -24,14 +24,12 @@ Requires:	R >= 2.11.1
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
-RStudio™ is a free and open source integrated development environment
-(IDE) for R. You can run it on your desktop (Windows, Mac, or Linux)
-or even over the web using RStudio Server. 
-
-#%description -l pl.UTF-8
+RStudio(tm) is a free and open source integrated development
+environment (IDE) for R. You can run it on your desktop (Windows, Mac,
+or Linux) or even over the web using RStudio Server.
 
 %prep
-%setup -q -n rstudio-rstudio-13a7f41
+%setup -q -n %{name}-%{name}-13a7f41
 mkdir -p src/gwt/lib/gwt
 mkdir -p src/gwt/lib/gin/1.5
 unzip -qq %{SOURCE1} -d src/gwt/lib/gwt
