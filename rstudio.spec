@@ -2,7 +2,7 @@ Summary:	IDE for R
 Summary(pl.UTF-8):	IDE dla R
 Name:		rstudio
 Version:	0.96.316
-Release:	1
+Release:	2
 License:	AGPLv3
 Group:		Applications
 Source0:	https://github.com/rstudio/rstudio/tarball/v0.96.316/%{name}-%{version}.tar.gz
