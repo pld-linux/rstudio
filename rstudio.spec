@@ -15,6 +15,7 @@ Source3:	https://s3.amazonaws.com/rstudio-buildtools/mathjax-20.zip
 # Source3-md5:	480ede551eeffec08162a7a913eee906
 Source4:	https://s3.amazonaws.com/rstudio-dictionaries/core-dictionaries.zip
 # Source4-md5:	0e03798b8e53096c4a906bde05e32378
+Patch0:		boost-1.53.patch
 URL:		http://rstudio.org/
 BuildRequires:	QtWebKit-devel
 BuildRequires:	QtXmlPatterns-devel
@@ -34,6 +35,7 @@ or Linux) or even over the web using RStudio Server.
 
 %prep
 %setup -q -n %{name}-%{name}-ca19c52
+%patch0 -p1
 mkdir -p src/gwt/lib/gwt
 mkdir -p src/gwt/lib/gin/1.5
 unzip -qq %{SOURCE1} -d src/gwt/lib/gwt
@@ -73,6 +75,7 @@ rm -rf $RPM_BUILD_ROOT
 %dir %{_libdir}/%{name}
 %{_libdir}/%{name}/R
 %dir %{_libdir}/%{name}/bin
+%attr(755,root,root) %{_libdir}/%{name}/bin/diagnostics
 %attr(755,root,root) %{_libdir}/%{name}/bin/r*
 %dir %{_libdir}/%{name}/bin/postback
 %attr(755,root,root) %{_libdir}/%{name}/bin/postback/*

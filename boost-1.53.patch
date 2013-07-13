@@ -1,0 +1,60 @@
+diff -ur rstudio-rstudio-ca19c52.orig/src/rstudio-rstudio-ca19c52/src/cpp/core/include/core/http/AsyncServer.hpp rstudio-rstudio-ca19c52/src/cpp/core/include/core/http/AsyncServer.hpp
+--- rstudio-rstudio-ca19c52.orig/src/rstudio-rstudio-ca19c52/src/cpp/core/include/core/http/AsyncServer.hpp	2013-05-11 11:43:04.000000000 +0200
++++ rstudio-rstudio-ca19c52/src/cpp/core/include/core/http/AsyncServer.hpp	2013-07-13 22:18:04.870033356 +0200
+@@ -264,7 +264,7 @@
+          
+          // convert to cannonical HttpConnection
+          boost::shared_ptr<AsyncConnection> pAsyncConnection =
+-             boost::shared_static_cast<AsyncConnection>(pConnection);
++             boost::dynamic_pointer_cast<AsyncConnection>(pConnection);
+ 
+          // call the appropriate handler to generate a response
+          std::string uri = pRequest->uri();
+diff -ur rstudio-rstudio-ca19c52.orig/src/rstudio-rstudio-ca19c52/src/cpp/core/include/core/http/LocalStreamAsyncClient.hpp rstudio-rstudio-ca19c52/src/cpp/core/include/core/http/LocalStreamAsyncClient.hpp
+--- rstudio-rstudio-ca19c52.orig/src/rstudio-rstudio-ca19c52/src/cpp/core/include/core/http/LocalStreamAsyncClient.hpp	2013-05-11 11:43:04.000000000 +0200
++++ rstudio-rstudio-ca19c52/src/cpp/core/include/core/http/LocalStreamAsyncClient.hpp	2013-07-13 22:18:08.176727065 +0200
+@@ -87,7 +87,7 @@
+       boost::shared_ptr<AsyncClient<boost::asio::local::stream_protocol::socket> >
+                                     ptrShared = shared_from_this();
+ 
+-      return boost::shared_static_cast<LocalStreamAsyncClient>(ptrShared);
++      return boost::dynamic_pointer_cast<LocalStreamAsyncClient>(ptrShared);
+    }
+ 
+ private:
+diff -ur rstudio-rstudio-ca19c52.orig/src/rstudio-rstudio-ca19c52/src/cpp/core/include/core/http/TcpIpAsyncClient.hpp rstudio-rstudio-ca19c52/src/cpp/core/include/core/http/TcpIpAsyncClient.hpp
+--- rstudio-rstudio-ca19c52.orig/src/rstudio-rstudio-ca19c52/src/cpp/core/include/core/http/TcpIpAsyncClient.hpp	2013-05-11 11:43:04.000000000 +0200
++++ rstudio-rstudio-ca19c52/src/cpp/core/include/core/http/TcpIpAsyncClient.hpp	2013-07-13 22:18:08.960066805 +0200
+@@ -74,7 +74,7 @@
+       boost::shared_ptr<AsyncClient<boost::asio::ip::tcp::socket> > ptrShared
+                                                 = shared_from_this();
+ 
+-      return boost::shared_static_cast<TcpIpAsyncClient>(ptrShared);
++      return boost::dynamic_pointer_cast<TcpIpAsyncClient>(ptrShared);
+    }
+ 
+ private:
+diff -ur rstudio-rstudio-ca19c52.orig/src/rstudio-rstudio-ca19c52/src/cpp/core/include/core/http/TcpIpAsyncClientSsl.hpp rstudio-rstudio-ca19c52/src/cpp/core/include/core/http/TcpIpAsyncClientSsl.hpp
+--- rstudio-rstudio-ca19c52.orig/src/rstudio-rstudio-ca19c52/src/cpp/core/include/core/http/TcpIpAsyncClientSsl.hpp	2013-05-11 11:43:04.000000000 +0200
++++ rstudio-rstudio-ca19c52/src/cpp/core/include/core/http/TcpIpAsyncClientSsl.hpp	2013-07-13 22:18:09.616738848 +0200
+@@ -109,7 +109,7 @@
+       boost::shared_ptr<AsyncClient<boost::asio::ssl::stream<boost::asio::ip::tcp::socket> > > ptrShared
+                                                  = shared_from_this();
+ 
+-      return boost::shared_static_cast<TcpIpAsyncClientSsl>(ptrShared);
++      return boost::dynamic_pointer_cast<TcpIpAsyncClientSsl>(ptrShared);
+    }
+ 
+    virtual bool isShutdownError(const boost::system::error_code& ec)
+diff -ur rstudio-rstudio-ca19c52.orig/src/rstudio-rstudio-ca19c52/src/cpp/session/http/SessionHttpConnectionListenerImpl.hpp rstudio-rstudio-ca19c52/src/cpp/session/http/SessionHttpConnectionListenerImpl.hpp
+--- rstudio-rstudio-ca19c52.orig/src/rstudio-rstudio-ca19c52/src/cpp/session/http/SessionHttpConnectionListenerImpl.hpp	2013-05-11 11:43:04.000000000 +0200
++++ rstudio-rstudio-ca19c52/src/cpp/session/http/SessionHttpConnectionListenerImpl.hpp	2013-07-13 22:18:10.206743669 +0200
+@@ -256,7 +256,7 @@
+    {
+       // convert to cannonical HttpConnection
+       boost::shared_ptr<HttpConnection> ptrHttpConnection =
+-            boost::shared_static_cast<HttpConnection>(ptrConnection);
++            boost::dynamic_pointer_cast<HttpConnection>(ptrConnection);
+ 
+       if (!authenticate(ptrHttpConnection))
+       {
