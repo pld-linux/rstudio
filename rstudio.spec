@@ -40,6 +40,8 @@ BuildRequires:	pam-devel
 BuildRequires:	pandoc
 BuildRequires:	pango-devel
 Requires:	R >= 2.11.1
+Requires:	pandoc
+Requires:	clang >= 3.5.0
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -123,6 +125,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libdir}/%{name}/bin/r*
 %dir %{_libdir}/%{name}/bin/postback
 %attr(755,root,root) %{_libdir}/%{name}/bin/postback/*
+%attr(755,root,root) %{_libdir}/%{name}/bin/pandoc*
 %{_libdir}/%{name}/resources
 %{_libdir}/%{name}/www
 %{_libdir}/%{name}/www-symbolmaps
