@@ -2,7 +2,7 @@ Summary:	IDE for R
 Summary(pl.UTF-8):	IDE dla R
 Name:		rstudio
 Version:	0.99.39
-Release:	0.1
+Release:	1
 License:	AGPLv3
 Group:		Applications
 Source0:	https://github.com/rstudio/rstudio/archive/v%{version}.tar.gz?/%{name}-%{version}.tar.gz
@@ -32,6 +32,7 @@ BuildRequires:	QtWebKit-devel
 BuildRequires:	QtXmlPatterns-devel
 BuildRequires:	R >= 2.11.1
 BuildRequires:	boost-devel >= 1.50
+BuildRequires:	clang-devel >= 3.5.0
 BuildRequires:	cmake >= 2.8.0
 BuildRequires:	java-junit
 BuildRequires:	openssl-devel
@@ -57,10 +58,6 @@ unzip -qq %{SOURCE3} -d src/gwt/lib/gin/1.5
 unzip -qq %{SOURCE4} -d dependencies/common
 unzip -qq %{SOURCE5} -d dependencies/common
 %{__mv} dependencies/common/pandoc-* dependencies/common/pandoc
-mkdir -p dependencies/common/libclang
-unzip -qq %{SOURCE6} -d dependencies/common/libclang
-unzip -qq %{SOURCE7} -d dependencies/common/libclang
-%{__mv} dependencies/common/libclang/libclang-3.5 dependencies/common/libclang/3.5
 
 xz -dc %{SOURCE8} | tar xf - -C dependencies/common/
 xz -dc %{SOURCE9} | tar xf - -C dependencies/common/
@@ -71,6 +68,20 @@ xz -dc %{SOURCE10} | tar xf - -C dependencies/common/
 # relative to some other namespace (like its ::core not ::boost::core)
 find . \( -name *.cpp -or -name *.hpp \) -exec sed \
         -e 's@<core::@< ::core::@g' -e 's@\([^:]\)core::@\1::core::@g' -i {} \;
+
+mkdir -p dependencies/common/libclang/3.5/include/
+ln -s /usr/include/clang-c dependencies/common/libclang/3.5/include/
+mkdir -p dependencies/common/libclang/builtin-headers
+ln -s /usr/lib64/clang/3.5.0/include dependencies/common/libclang/builtin-headers/3.5
+#dependencies/common/libclang/builtin-headers/libc++/3.5
+%ifarch %{ix86}
+mkdir -p dependencies/common/libclang/3.5/linux/x86
+ln -s %{_libdir}/libclang.so dependencies/common/libclang/3.5/linux/x86/libclang.so
+%endif
+%ifarch %{x8664}
+mkdir -p dependencies/common/libclang/3.5/linux/x86_64
+ln -s %{_libdir}/libclang.so dependencies/common/libclang/3.5/linux/x86_64/libclang.so
+%endif
 
 %build
 install -d build
@@ -110,6 +121,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libdir}/%{name}/bin/postback/*
 %{_libdir}/%{name}/resources
 %{_libdir}/%{name}/www
+%{_libdir}/%{name}/www-symbolmaps
 %{_libdir}/%{name}/rstudio.png
 %{_desktopdir}/rstudio.desktop
 %{_iconsdir}/hicolor/*x*/apps/*
