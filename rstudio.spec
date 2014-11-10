@@ -1,25 +1,37 @@
 Summary:	IDE for R
 Summary(pl.UTF-8):	IDE dla R
 Name:		rstudio
-Version:	0.97.551
-Release:	4
+Version:	0.99.39
+Release:	0.1
 License:	AGPLv3
 Group:		Applications
-Source0:	https://github.com/rstudio/rstudio/tarball/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	cff627f3140337f5ea43104f2af176a5
-Source1:	https://s3.amazonaws.com/rstudio-buildtools/gwt-2.5.0.rc1.zip
-# Source1-md5:	5775d186c5f5c23f4d1d3617d3becd09
-Source2:	https://s3.amazonaws.com/rstudio-buildtools/gin-1.5.zip
-# Source2-md5:	2409168cc18bf5f341e107e6887fe359
-Source3:	https://s3.amazonaws.com/rstudio-buildtools/mathjax-20.zip
-# Source3-md5:	480ede551eeffec08162a7a913eee906
-Source4:	https://s3.amazonaws.com/rstudio-dictionaries/core-dictionaries.zip
-# Source4-md5:	0e03798b8e53096c4a906bde05e32378
-Patch0:		boost-1.53.patch
+Source0:	https://github.com/rstudio/rstudio/archive/v%{version}.tar.gz?/%{name}-%{version}.tar.gz
+# Source0-md5:	8b340edf12a40806daafffad9e3849f0
+Source1:	https://s3.amazonaws.com/rstudio-dictionaries/core-dictionaries.zip
+# Source1-md5:	0e03798b8e53096c4a906bde05e32378
+Source2:	https://s3.amazonaws.com/rstudio-buildtools/gwt-2.6.0.zip
+# Source2-md5:	b08b2b0c50ef2249703aa8422388d5db
+Source3:	https://s3.amazonaws.com/rstudio-buildtools/gin-1.5.zip
+# Source3-md5:	2409168cc18bf5f341e107e6887fe359
+Source4:	https://s3.amazonaws.com/rstudio-buildtools/mathjax-23.zip
+# Source4-md5:	5853c0494c6b28557d6b7cecaa790019
+Source5:	https://s3.amazonaws.com/rstudio-buildtools/pandoc-1.12.4.2.zip
+# Source5-md5:	d0f7e3d23b42cb9d26d2783d659040cf
+Source6:	https://s3.amazonaws.com/rstudio-buildtools/libclang-3.5.zip
+# Source6-md5:	cf1a43d2d6203a765ef16d7b12382c8a
+Source7:	https://s3.amazonaws.com/rstudio-buildtools/libclang-builtin-headers.zip
+# Source7-md5:	e6790a3ee6c371968eba865fc0a84daf
+Source8:	packrat_0.4.1.24_bbdab984134678db91b8f372e2550e59f266de37.tar.xz
+# Source8-md5:	7607927c4adf507d67d2ba18d38c7bb0
+Source9:	rmarkdown_0.3.12_8a78f712202263200f2110ec8aa24a55c2726e37.tar.xz
+# Source9-md5:	358f9f4bf2f35dd58d4771f6b24d252e
+Source10:	shinyapps_0.3.61_d3ab9e1cdd02f0067d69fe6fc816a61c8a5f2218.tar.xz
+# Source10-md5:	3f5ce12f86b00a2e77067d7769fffe08
 URL:		http://rstudio.org/
 BuildRequires:	QtWebKit-devel
 BuildRequires:	QtXmlPatterns-devel
 BuildRequires:	R >= 2.11.1
+BuildRequires:	boost-devel >= 1.50
 BuildRequires:	cmake >= 2.8.0
 BuildRequires:	java-junit
 BuildRequires:	openssl-devel
@@ -34,21 +46,38 @@ environment (IDE) for R. You can run it on your desktop (Windows, Mac,
 or Linux) or even over the web using RStudio Server.
 
 %prep
-%setup -q -n %{name}-%{name}-ca19c52
-%patch0 -p1
+%setup -q
+mkdir -p dependencies/common/dictionaries
+unzip -qq %{SOURCE1} -d dependencies/common/dictionaries
 mkdir -p src/gwt/lib/gwt
 mkdir -p src/gwt/lib/gin/1.5
-unzip -qq %{SOURCE1} -d src/gwt/lib/gwt
-unzip -qq %{SOURCE2} -d src/gwt/lib/gin/1.5
-mv src/gwt/lib/gwt/gwt-2.5.0.rc1 src/gwt/lib/gwt/2.5.0.rc1
-unzip -qq %{SOURCE3} -d dependencies/common
-mkdir -p dependencies/common/dictionaries
-unzip -qq %{SOURCE4} -d dependencies/common/dictionaries
+unzip -qq %{SOURCE2} -d src/gwt/lib/gwt
+unzip -qq %{SOURCE3} -d src/gwt/lib/gin/1.5
+%{__mv} src/gwt/lib/gwt/gwt-2.6.0 src/gwt/lib/gwt/2.6.0
+unzip -qq %{SOURCE4} -d dependencies/common
+unzip -qq %{SOURCE5} -d dependencies/common
+%{__mv} dependencies/common/pandoc-* dependencies/common/pandoc
+mkdir -p dependencies/common/libclang
+unzip -qq %{SOURCE6} -d dependencies/common/libclang
+unzip -qq %{SOURCE7} -d dependencies/common/libclang
+%{__mv} dependencies/common/libclang/libclang-3.5 dependencies/common/libclang/3.5
+
+xz -dc %{SOURCE8} | tar xf - -C dependencies/common/
+xz -dc %{SOURCE9} | tar xf - -C dependencies/common/
+xz -dc %{SOURCE10} | tar xf - -C dependencies/common/
+
+# fix building with boost 1.56
+# specify that namespace core is in the global namespace and not
+# relative to some other namespace (like its ::core not ::boost::core)
+find . \( -name *.cpp -or -name *.hpp \) -exec sed \
+        -e 's@<core::@< ::core::@g' -e 's@\([^:]\)core::@\1::core::@g' -i {} \;
 
 %build
 install -d build
 cd build
 %cmake \
+	-DCMAKE_CXX_FLAGS_RELEASE="${CXXFLAGS:-%{rpmcxxflags} -DNDEBUG -DQT_NO_DEBUG}" \
+	-DCMAKE_C_FLAGS_RELEASE="${CFLAGS:-%{rpmcflags} -DNDEBUG -DQT_NO_DEBUG}" \
 	-DRSTUDIO_TARGET=Desktop \
 	-DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_INSTALL_PREFIX=%{_libdir}/%{name} \
