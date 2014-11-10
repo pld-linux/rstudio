@@ -37,6 +37,7 @@ BuildRequires:	cmake >= 2.8.0
 BuildRequires:	java-junit
 BuildRequires:	openssl-devel
 BuildRequires:	pam-devel
+BuildRequires:	pandoc
 BuildRequires:	pango-devel
 Requires:	R >= 2.11.1
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
@@ -56,8 +57,6 @@ unzip -qq %{SOURCE2} -d src/gwt/lib/gwt
 unzip -qq %{SOURCE3} -d src/gwt/lib/gin/1.5
 %{__mv} src/gwt/lib/gwt/gwt-2.6.0 src/gwt/lib/gwt/2.6.0
 unzip -qq %{SOURCE4} -d dependencies/common
-unzip -qq %{SOURCE5} -d dependencies/common
-%{__mv} dependencies/common/pandoc-* dependencies/common/pandoc
 
 xz -dc %{SOURCE8} | tar xf - -C dependencies/common/
 xz -dc %{SOURCE9} | tar xf - -C dependencies/common/
@@ -68,6 +67,11 @@ xz -dc %{SOURCE10} | tar xf - -C dependencies/common/
 # relative to some other namespace (like its ::core not ::boost::core)
 find . \( -name *.cpp -or -name *.hpp \) -exec sed \
         -e 's@<core::@< ::core::@g' -e 's@\([^:]\)core::@\1::core::@g' -i {} \;
+
+# rstudio wants 1.12.4.2, let it think that
+mkdir -p dependencies/common/pandoc/1.12.4.2
+ln -s %{_bindir}/pandoc dependencies/common/pandoc/1.12.4.2/pandoc
+ln -s %{_bindir}/pandoc dependencies/common/pandoc/1.12.4.2/pandoc-static
 
 mkdir -p dependencies/common/libclang/3.5/include/
 ln -s /usr/include/clang-c dependencies/common/libclang/3.5/include/
