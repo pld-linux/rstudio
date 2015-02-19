@@ -2,7 +2,7 @@ Summary:	IDE for R
 Summary(pl.UTF-8):	IDE dla R
 Name:		rstudio
 Version:	0.99.39
-Release:	1
+Release:	2
 License:	AGPLv3
 Group:		Applications
 Source0:	https://github.com/rstudio/rstudio/archive/v%{version}.tar.gz?/%{name}-%{version}.tar.gz
@@ -27,6 +27,7 @@ Source9:	rmarkdown_0.3.12_8a78f712202263200f2110ec8aa24a55c2726e37.tar.xz
 # Source9-md5:	358f9f4bf2f35dd58d4771f6b24d252e
 Source10:	shinyapps_0.3.61_d3ab9e1cdd02f0067d69fe6fc816a61c8a5f2218.tar.xz
 # Source10-md5:	3f5ce12f86b00a2e77067d7769fffe08
+Patch0:		boost-moc.patch
 URL:		http://rstudio.org/
 BuildRequires:	QtWebKit-devel
 BuildRequires:	QtXmlPatterns-devel
@@ -88,6 +89,8 @@ ln -s %{_libdir}/libclang.so dependencies/common/libclang/3.5/linux/x86/libclang
 mkdir -p dependencies/common/libclang/3.5/linux/x86_64
 ln -s %{_libdir}/libclang.so dependencies/common/libclang/3.5/linux/x86_64/libclang.so
 %endif
+
+%patch0 -p1
 
 %build
 install -d build
