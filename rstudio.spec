@@ -2,7 +2,7 @@ Summary:	IDE for R
 Summary(pl.UTF-8):	IDE dla R
 Name:		rstudio
 Version:	0.99.39
-Release:	4
+Release:	5
 License:	AGPLv3
 Group:		Applications
 Source0:	https://github.com/rstudio/rstudio/archive/v%{version}.tar.gz?/%{name}-%{version}.tar.gz
@@ -43,6 +43,7 @@ BuildRequires:	pango-devel
 Requires:	R >= 2.11.1
 Requires:	pandoc
 Requires:	clang >= 3.5.0
+ExclusiveArch:	%{ix86} %{x8664}
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
