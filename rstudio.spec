@@ -1,20 +1,20 @@
 Summary:	IDE for R
 Summary(pl.UTF-8):	IDE dla R
 Name:		rstudio
-Version:	0.99.39
-Release:	5
+Version:	1.1.142
+Release:	0.1
 License:	AGPLv3
 Group:		Applications
 Source0:	https://github.com/rstudio/rstudio/archive/v%{version}.tar.gz?/%{name}-%{version}.tar.gz
-# Source0-md5:	8b340edf12a40806daafffad9e3849f0
+# Source0-md5:	4209bf5cfa815416aaab54b2afc528cc
 Source1:	https://s3.amazonaws.com/rstudio-dictionaries/core-dictionaries.zip
 # Source1-md5:	0e03798b8e53096c4a906bde05e32378
-Source2:	https://s3.amazonaws.com/rstudio-buildtools/gwt-2.6.0.zip
-# Source2-md5:	b08b2b0c50ef2249703aa8422388d5db
+Source2:	https://s3.amazonaws.com/rstudio-buildtools/gwt-2.7.0.zip
+# Source2-md5:	a8f3704a597b392910ea060284f21a03
 Source3:	https://s3.amazonaws.com/rstudio-buildtools/gin-1.5.zip
 # Source3-md5:	2409168cc18bf5f341e107e6887fe359
-Source4:	https://s3.amazonaws.com/rstudio-buildtools/mathjax-23.zip
-# Source4-md5:	5853c0494c6b28557d6b7cecaa790019
+Source4:	https://s3.amazonaws.com/rstudio-buildtools/mathjax-26.zip
+# Source4-md5:	94fcab0aead8f730cd21e26dcb5a330d
 Source5:	https://s3.amazonaws.com/rstudio-buildtools/pandoc-1.12.4.2.zip
 # Source5-md5:	d0f7e3d23b42cb9d26d2783d659040cf
 Source6:	https://s3.amazonaws.com/rstudio-buildtools/libclang-3.5.zip
@@ -23,14 +23,16 @@ Source7:	https://s3.amazonaws.com/rstudio-buildtools/libclang-builtin-headers.zi
 # Source7-md5:	e6790a3ee6c371968eba865fc0a84daf
 Source8:	packrat_0.4.1.24_bbdab984134678db91b8f372e2550e59f266de37.tar.xz
 # Source8-md5:	7607927c4adf507d67d2ba18d38c7bb0
-Source9:	rmarkdown_0.3.12_8a78f712202263200f2110ec8aa24a55c2726e37.tar.xz
-# Source9-md5:	358f9f4bf2f35dd58d4771f6b24d252e
+Source9:	rmarkdown_1.4.0.9001_b7434dcc5abe87cb27f01cbffb9ca94e1539d322.tar.xz
+# Source9-md5:	3555af924d08fa900789c61eaa837087
 Source10:	shinyapps_0.3.61_d3ab9e1cdd02f0067d69fe6fc816a61c8a5f2218.tar.xz
 # Source10-md5:	3f5ce12f86b00a2e77067d7769fffe08
+Source11:	rsconnect_0.7.0-2_fa486121f8f75701e2044f33d2901e610160322f.tar.xz
+# Source11-md5:	938ca5efbed1ead619de42488ed30760
 Patch0:		boost-moc.patch
 URL:		http://rstudio.org/
-BuildRequires:	QtWebKit-devel
-BuildRequires:	QtXmlPatterns-devel
+BuildRequires:	Qt5WebKit-devel
+BuildRequires:	Qt5XmlPatterns-devel
 BuildRequires:	R >= 2.11.1
 BuildRequires:	boost-devel >= 1.50
 BuildRequires:	clang-devel >= 3.5.0
@@ -59,12 +61,13 @@ mkdir -p src/gwt/lib/gwt
 mkdir -p src/gwt/lib/gin/1.5
 unzip -qq %{SOURCE2} -d src/gwt/lib/gwt
 unzip -qq %{SOURCE3} -d src/gwt/lib/gin/1.5
-%{__mv} src/gwt/lib/gwt/gwt-2.6.0 src/gwt/lib/gwt/2.6.0
+%{__mv} src/gwt/lib/gwt/gwt-2.7.0 src/gwt/lib/gwt/2.7.0
 unzip -qq %{SOURCE4} -d dependencies/common
 
 xz -dc %{SOURCE8} | tar xf - -C dependencies/common/
 xz -dc %{SOURCE9} | tar xf - -C dependencies/common/
 xz -dc %{SOURCE10} | tar xf - -C dependencies/common/
+xz -dc %{SOURCE11} | tar xf - -C dependencies/common/
 
 # fix building with boost 1.56
 # specify that namespace core is in the global namespace and not
@@ -97,6 +100,7 @@ ln -s %{_libdir}/libclang.so dependencies/common/libclang/3.5/linux/x86_64/libcl
 install -d build
 cd build
 %cmake \
+	-DQT_QMAKE_EXECUTABLE=/usr/bin/qt5-qmake \
 	-DCMAKE_CXX_FLAGS_RELEASE="${CXXFLAGS:-%{rpmcxxflags} -DNDEBUG -DQT_NO_DEBUG}" \
 	-DCMAKE_C_FLAGS_RELEASE="${CFLAGS:-%{rpmcflags} -DNDEBUG -DQT_NO_DEBUG}" \
 	-DRSTUDIO_TARGET=Desktop \
