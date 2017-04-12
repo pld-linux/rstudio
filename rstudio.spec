@@ -1,12 +1,12 @@
 Summary:	IDE for R
 Summary(pl.UTF-8):	IDE dla R
 Name:		rstudio
-Version:	1.1.142
-Release:	0.1
+Version:	1.1.143
+Release:	1
 License:	AGPLv3
 Group:		Applications
 Source0:	https://github.com/rstudio/rstudio/archive/v%{version}.tar.gz?/%{name}-%{version}.tar.gz
-# Source0-md5:	4209bf5cfa815416aaab54b2afc528cc
+# Source0-md5:	ae531eed17e70a6d4f2d8560696b466e
 Source1:	https://s3.amazonaws.com/rstudio-dictionaries/core-dictionaries.zip
 # Source1-md5:	0e03798b8e53096c4a906bde05e32378
 Source2:	https://s3.amazonaws.com/rstudio-buildtools/gwt-2.7.0.zip
@@ -29,7 +29,6 @@ Source10:	shinyapps_0.3.61_d3ab9e1cdd02f0067d69fe6fc816a61c8a5f2218.tar.xz
 # Source10-md5:	3f5ce12f86b00a2e77067d7769fffe08
 Source11:	rsconnect_0.7.0-2_fa486121f8f75701e2044f33d2901e610160322f.tar.xz
 # Source11-md5:	938ca5efbed1ead619de42488ed30760
-Patch0:		boost-moc.patch
 URL:		http://rstudio.org/
 BuildRequires:	Qt5WebKit-devel
 BuildRequires:	Qt5XmlPatterns-devel
@@ -69,12 +68,6 @@ xz -dc %{SOURCE9} | tar xf - -C dependencies/common/
 xz -dc %{SOURCE10} | tar xf - -C dependencies/common/
 xz -dc %{SOURCE11} | tar xf - -C dependencies/common/
 
-# fix building with boost 1.56
-# specify that namespace core is in the global namespace and not
-# relative to some other namespace (like its ::core not ::boost::core)
-find . \( -name *.cpp -or -name *.hpp \) -exec sed \
-        -e 's@<core::@< ::core::@g' -e 's@\([^:]\)core::@\1::core::@g' -i {} \;
-
 # rstudio wants 1.12.4.2, let it think that
 mkdir -p dependencies/common/pandoc/1.12.4.2
 ln -s %{_bindir}/pandoc dependencies/common/pandoc/1.12.4.2/pandoc
@@ -93,8 +86,6 @@ ln -s %{_libdir}/libclang.so dependencies/common/libclang/3.5/linux/x86/libclang
 mkdir -p dependencies/common/libclang/3.5/linux/x86_64
 ln -s %{_libdir}/libclang.so dependencies/common/libclang/3.5/linux/x86_64/libclang.so
 %endif
-
-%patch0 -p1
 
 %build
 install -d build
@@ -133,7 +124,6 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libdir}/%{name}/bin/r*
 %dir %{_libdir}/%{name}/bin/postback
 %attr(755,root,root) %{_libdir}/%{name}/bin/postback/*
-%attr(755,root,root) %{_libdir}/%{name}/bin/pandoc*
 %{_libdir}/%{name}/resources
 %{_libdir}/%{name}/www
 %{_libdir}/%{name}/www-symbolmaps
