@@ -1,0 +1,589 @@
+--- rstudio-1.1.143/src/cpp/CMakeLists.txt.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/CMakeLists.txt	2019-04-30 18:03:57.109531679 +0200
+@@ -147,7 +147,6 @@
+    iostreams
+    program_options
+    regex
+-   signals
+    system
+    thread
+    chrono
+--- rstudio-1.1.143/src/cpp/core/BoostErrors.cpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/core/BoostErrors.cpp	2019-04-30 18:14:58.434346841 +0200
+@@ -148,7 +148,7 @@
+ boost::system::error_code ec_from_exception(const interprocess_exception& e) 
+ {
+    if (e.get_error_code() == system_error)
+-      return error_code(e.get_native_error(), get_system_category()) ;
++      return error_code(e.get_native_error(), system_category()) ;
+    else
+       return error_code(e.get_error_code(), interprocess_category()) ;
+ }
+--- rstudio-1.1.143/src/cpp/core/DateTime.cpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/core/DateTime.cpp	2019-04-30 18:41:49.839481751 +0200
+@@ -61,7 +61,7 @@
+    using namespace boost::posix_time;
+ 
+    ptime time_t_epoch(date(1970,1,1));
+-   return time_t_epoch + seconds(sec);
++   return time_t_epoch + seconds(int64_t(sec));
+ }
+ 
+ boost::posix_time::ptime timeFromMillisecondsSinceEpoch(int64_t ms)
+--- rstudio-1.1.143/src/cpp/core/Error.cpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/core/Error.cpp	2019-04-30 18:50:13.489560404 +0200
+@@ -165,7 +165,7 @@
+ Error systemError(int value, const ErrorLocation& location) 
+ {
+    using namespace boost::system ;
+-   return Error(error_code(value, get_system_category()), location);
++   return Error(error_code(value, system_category()), location);
+ }
+ 
+ Error systemError(int value,
+@@ -173,7 +173,7 @@
+                   const ErrorLocation& location)
+ {
+    using namespace boost::system ;
+-   return Error(error_code(value, get_system_category()), cause, location);
++   return Error(error_code(value, system_category()), cause, location);
+ }
+ 
+ Error systemError(int value,
+--- rstudio-1.1.143/src/cpp/core/Error.cpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/core/Error.cpp	2019-04-30 18:50:13.489560404 +0200
+@@ -165,7 +165,7 @@
+ Error systemError(int value, const ErrorLocation& location) 
+ {
+    using namespace boost::system ;
+-   return Error(error_code(value, get_system_category()), location);
++   return Error(error_code(value, system_category()), location);
+ }
+ 
+ Error systemError(int value,
+@@ -173,7 +173,7 @@
+                   const ErrorLocation& location)
+ {
+    using namespace boost::system ;
+-   return Error(error_code(value, get_system_category()), cause, location);
++   return Error(error_code(value, system_category()), cause, location);
+ }
+ 
+ Error systemError(int value,
+--- rstudio-1.1.143/src/cpp/core/FilePath.cpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/core/FilePath.cpp	2019-04-30 19:08:36.191306900 +0200
+@@ -950,7 +950,7 @@
+                            "absolute path not permitted",
+                            boost::system::error_code(
+                               boost::system::errc::no_such_file_or_directory,
+-                              boost::system::get_system_category()));
++                              boost::system::system_category()));
+          }
+ 
+          return complete(path);
+--- rstudio-1.1.143/src/cpp/core/file_lock/FileLock.cpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/core/file_lock/FileLock.cpp	2019-04-30 19:53:12.433089596 +0200
+@@ -49,8 +49,8 @@
+ #endif 
+ 
+ const char * const kLocksConfPath    = "/etc/rstudio/file-locks";
+-const double kDefaultRefreshRate     = 20.0;
+-const double kDefaultTimeoutInterval = 30.0;
++const int64_t kDefaultRefreshRate     = 20;
++const int64_t kDefaultTimeoutInterval = 30;
+ 
+ std::string lockTypeToString(FileLock::LockType type)
+ {
+@@ -134,11 +134,11 @@
+    FileLock::s_defaultType = stringToLockType(settings.get("lock-type", kLockTypeDefault));
+ 
+    // timeout interval
+-   double timeoutInterval = getFieldPositive(settings, "timeout-interval", kDefaultTimeoutInterval);
++   int64_t timeoutInterval = getFieldPositive(settings, "timeout-interval", kDefaultTimeoutInterval);
+    FileLock::s_timeoutInterval = boost::posix_time::seconds(timeoutInterval);
+    
+    // refresh rate
+-   double refreshRate = getFieldPositive(settings, "refresh-rate", kDefaultRefreshRate);
++   int64_t refreshRate = getFieldPositive(settings, "refresh-rate", kDefaultRefreshRate);
+    FileLock::s_refreshRate = boost::posix_time::seconds(refreshRate);
+    
+    // logging
+--- rstudio-1.1.143/src/cpp/core/include/core/r_util/RFunctionInformation.hpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/core/include/core/r_util/RFunctionInformation.hpp	2019-04-30 21:29:45.820684223 +0200
+@@ -75,9 +75,9 @@
+    const std::string& name() const { return name_; }
+    const boost::optional<std::string>& defaultValue() const { return defaultValue_; }
+    boost::tribool hasDefault() const { return hasDefault_; }
+-   bool isUsed() const { return isUsed_; }
++   bool isUsed() const { return bool(isUsed_); }
+    void setIsUsed(bool value) { isUsed_ = value; }
+-   bool isMissingnessHandled() const { return isMissingnessHandled_; }
++   bool isMissingnessHandled() const { return bool(isMissingnessHandled_); }
+    void setMissingnessHandled(bool value) { isMissingnessHandled_ = value; }
+    
+ private:
+@@ -130,7 +130,7 @@
+    
+    bool isPrimitive()
+    {
+-      return isPrimitive_ == true;
++      return bool(isPrimitive_ == true);
+    }
+    
+    void setIsPrimitive(bool isPrimitive)
+--- rstudio-1.1.143/src/cpp/monitor/include/monitor/MonitorClient.hpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/monitor/include/monitor/MonitorClient.hpp	2019-04-30 21:37:56.483122815 +0200
+@@ -27,14 +27,6 @@
+ 
+ #include "MonitorConstants.hpp"
+ 
+-// forward declaration; boost/asio/io_service may cause errors if included more
+-// than once (Boost 1.50 on Win x64 only)
+-namespace RSTUDIO_BOOST_NAMESPACE {
+-namespace asio {
+-   class io_service;
+-}
+-}
+-
+ namespace rstudio {
+ namespace monitor {
+ 
+--- rstudio-1.1.143/src/cpp/r/include/r/session/RConsoleHistory.hpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/r/include/r/session/RConsoleHistory.hpp	2019-04-30 21:38:32.871700755 +0200
+@@ -20,7 +20,7 @@
+ 
+ #include <boost/utility.hpp>
+ #include <boost/circular_buffer.hpp>
+-#include <boost/signal.hpp>
++#include <boost/signals2/signal.hpp>
+ 
+ #include <core/json/Json.hpp>
+ 
+@@ -44,7 +44,7 @@
+ public:
+    typedef boost::circular_buffer<std::string>::value_type value_type;
+    typedef boost::circular_buffer<std::string>::const_iterator const_iterator;
+-   typedef boost::signal<void (const std::string&)> AddSignal;
++   typedef boost::signals2::signal<void (const std::string&)> AddSignal;
+ 
+ private:
+    ConsoleHistory();
+@@ -86,7 +86,7 @@
+    core::Error loadFromFile(const core::FilePath& filePath, bool verifyFile);
+    core::Error saveToFile(const core::FilePath& filePath) const;
+    
+-   boost::signals::connection connectOnAdd(
++   boost::signals2::connection connectOnAdd(
+                                  const AddSignal::slot_function_type& slot)
+    {
+       return onAdd_.connect(slot);
+--- rstudio-1.1.143/src/cpp/monitor/include/monitor/MonitorClient.hpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/monitor/include/monitor/MonitorClient.hpp	2019-04-30 21:45:43.674343571 +0200
+@@ -18,6 +18,8 @@
+ 
+ #include <string>
+ 
++#include <boost/asio/io_service.hpp>
++
+ #include <core/system/System.hpp>
+ #include <core/LogWriter.hpp>
+ 
+@@ -27,14 +29,6 @@
+ 
+ #include "MonitorConstants.hpp"
+ 
+-// forward declaration; boost/asio/io_service may cause errors if included more
+-// than once (Boost 1.50 on Win x64 only)
+-namespace RSTUDIO_BOOST_NAMESPACE {
+-namespace asio {
+-   class io_service;
+-}
+-}
+-
+ namespace rstudio {
+ namespace monitor {
+ 
+--- rstudio-1.1.143/src/cpp/r/include/r/session/RGraphics.hpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/r/include/r/session/RGraphics.hpp	2019-04-30 21:51:36.872886926 +0200
+@@ -56,7 +56,7 @@
+ #include <vector>
+ 
+ #include <boost/function.hpp>
+-#include <boost/signal.hpp>
++#include <boost/signals2/signal.hpp>
+ 
+ #include <core/Error.hpp>
+ #include <core/json/Json.hpp>
+@@ -162,7 +162,7 @@
+    virtual void clear() = 0;
+ 
+    // subscribe to showManipulator event
+-   virtual boost::signal<void ()>& onShowManipulator() = 0;
++   virtual boost::signals2::signal<void ()>& onShowManipulator() = 0;
+ 
+    // set manipulator values
+    virtual void setPlotManipulatorValues(const core::json::Object& values) = 0;
+--- rstudio-1.1.143/src/cpp/r/session/graphics/RGraphicsPlotManager.hpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/r/session/graphics/RGraphicsPlotManager.hpp	2019-04-30 21:56:03.636876362 +0200
+@@ -22,7 +22,7 @@
+ #include <boost/utility.hpp>
+ #include <boost/shared_ptr.hpp>
+ #include <boost/function.hpp>
+-#include <boost/signal.hpp>
++#include <boost/signals2/signal.hpp>
+ #include <boost/regex.hpp>
+ #include <boost/circular_buffer.hpp>
+ 
+@@ -45,10 +45,10 @@
+ 
+ struct GraphicsDeviceEvents
+ {
+-   boost::signal<void (SEXP)> onNewPage; 
+-   boost::signal<void ()> onDrawing;
+-   boost::signal<void ()> onResized;
+-   boost::signal<void ()> onClosed;
++   boost::signals2::signal<void (SEXP)> onNewPage; 
++   boost::signals2::signal<void ()> onDrawing;
++   boost::signals2::signal<void ()> onResized;
++   boost::signals2::signal<void ()> onClosed;
+ };
+ 
+ class PlotManipulatorManager;
+@@ -110,7 +110,7 @@
+    
+    virtual void clear();
+ 
+-   virtual boost::signal<void ()>& onShowManipulator() ;
++   virtual boost::signals2::signal<void ()>& onShowManipulator() ;
+    virtual void setPlotManipulatorValues(const core::json::Object& values);
+    virtual void manipulatorPlotClicked(int x, int y);
+ 
+--- rstudio-1.1.143/src/cpp/r/session/graphics/RGraphicsPlotManipulatorManager.hpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/r/session/graphics/RGraphicsPlotManipulatorManager.hpp	2019-04-30 22:05:43.147318776 +0200
+@@ -16,7 +16,7 @@
+ #ifndef R_SESSION_GRAPHICS_PLOT_MANIPULATOR_MANAGER_HPP
+ #define R_SESSION_GRAPHICS_PLOT_MANIPULATOR_MANAGER_HPP
+ 
+-#include <boost/signal.hpp>
++#include <boost/signals2/signal.hpp>
+ 
+ #include <core/Error.hpp>
+ #include <core/json/Json.hpp>
+@@ -53,7 +53,7 @@
+ public:
+    core::Error initialize(const UnitConversionFunctions& convert);
+ 
+-   boost::signal<void ()>& onShowManipulator() ;
++   boost::signals2::signal<void ()>& onShowManipulator() ;
+    void setPlotManipulatorValues(const core::json::Object& values);
+    void manipulatorPlotClicked(int x, int y);
+    
+@@ -85,7 +85,7 @@
+    bool replayingManipulator_;
+ 
+    // manipulator event hook
+-   boost::signal<void ()> onShowManipulator_;
++   boost::signals2::signal<void ()> onShowManipulator_;
+ 
+    // unit conversion function
+    UnitConversionFunctions convert_;
+--- rstudio-1.1.143/src/cpp/r/session/graphics/RGraphicsPlotManipulatorManager.cpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/r/session/graphics/RGraphicsPlotManipulatorManager.cpp	2019-04-30 22:08:26.619968572 +0200
+@@ -184,7 +184,7 @@
+ }
+ 
+ 
+-boost::signal<void ()>& PlotManipulatorManager::onShowManipulator()
++boost::signals2::signal<void ()>& PlotManipulatorManager::onShowManipulator()
+ {
+    return onShowManipulator_;
+ }
+--- rstudio-1.1.143/src/cpp/r/session/graphics/RGraphicsPlotManager.cpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/r/session/graphics/RGraphicsPlotManager.cpp	2019-04-30 22:12:31.552894791 +0200
+@@ -540,7 +540,7 @@
+ 
+ 
+ 
+-boost::signal<void ()>& PlotManager::onShowManipulator()
++boost::signals2::signal<void ()>& PlotManager::onShowManipulator()
+ {
+    return plotManipulatorManager().onShowManipulator();
+ }
+--- rstudio-1.1.143/src/cpp/session/include/session/SessionUserSettings.hpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/session/include/session/SessionUserSettings.hpp	2019-04-30 22:14:26.662303350 +0200
+@@ -20,7 +20,7 @@
+ 
+ #include <boost/utility.hpp>
+ #include <boost/scoped_ptr.hpp>
+-#include <boost/signal.hpp>
++#include <boost/signals2/signal.hpp>
+ 
+ #include <core/Settings.hpp>
+ #include <core/FilePath.hpp>
+@@ -60,7 +60,7 @@
+    friend UserSettings& userSettings();
+ 
+ public:
+-   boost::signal<void()> onChanged;
++   boost::signals2::signal<void()> onChanged;
+ 
+ public:
+    // COPYING: boost::noncopyable
+--- rstudio-1.1.143/src/cpp/session/include/session/SessionConsoleProcess.hpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/session/include/session/SessionConsoleProcess.hpp	2019-04-30 22:15:41.852955908 +0200
+@@ -20,7 +20,7 @@
+ #include <deque>
+ 
+ #include <boost/regex.hpp>
+-#include <boost/signals.hpp>
++#include <boost/signals2/signals.hpp>
+ #include <boost/circular_buffer.hpp>
+ #include <boost/enable_shared_from_this.hpp>
+ 
+@@ -120,7 +120,7 @@
+    void setPromptHandler(
+          const boost::function<bool(const std::string&, Input*)>& onPrompt);
+ 
+-   boost::signal<void(int)>& onExit() { return onExit_; }
++   boost::signals2::signal<void(int)>& onExit() { return onExit_; }
+ 
+    std::string handle() const { return procInfo_->getHandle(); }
+    InteractionMode interactionMode() const { return procInfo_->getInteractionMode(); }
+@@ -195,7 +195,7 @@
+    int lastInputSequence_;
+ 
+    boost::function<bool(const std::string&, Input*)> onPrompt_;
+-   boost::signal<void(int)> onExit_;
++   boost::signals2::signal<void(int)> onExit_;
+ 
+    // regex for prompt detection
+    boost::regex controlCharsPattern_;
+--- rstudio-1.1.143/src/cpp/session/include/session/SessionModuleContext.hpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/session/include/session/SessionModuleContext.hpp	2019-04-30 22:17:50.683118588 +0200
+@@ -21,7 +21,7 @@
+ 
+ #include <boost/utility.hpp>
+ #include <boost/function.hpp>
+-#include <boost/signals.hpp>
++#include <boost/signals2/signal.hpp>
+ #include <boost/shared_ptr.hpp>
+ 
+ #include <core/HtmlUtils.hpp>
+@@ -316,34 +316,34 @@
+ // session events
+ struct Events : boost::noncopyable
+ {
+-   boost::signal<void (core::json::Object*)> onSessionInfo;
+-   boost::signal<void ()>                    onClientInit;
+-   boost::signal<void ()>                    onBeforeExecute;
+-   boost::signal<void(const std::string&)>   onConsolePrompt;
+-   boost::signal<void(const std::string&)>   onConsoleInput;
+-   boost::signal<void(const std::string&, const std::string&)>  
++   boost::signals2::signal<void (core::json::Object*)> onSessionInfo;
++   boost::signals2::signal<void ()>                    onClientInit;
++   boost::signals2::signal<void ()>                    onBeforeExecute;
++   boost::signals2::signal<void(const std::string&)>   onConsolePrompt;
++   boost::signals2::signal<void(const std::string&)>   onConsoleInput;
++   boost::signals2::signal<void(const std::string&, const std::string&)>  
+                                              onActiveConsoleChanged;
+-   boost::signal<void (ConsoleOutputType, const std::string&)>
++   boost::signals2::signal<void (ConsoleOutputType, const std::string&)>
+                                              onConsoleOutput;
+-   boost::signal<void()>                     onUserInterrupt;
+-   boost::signal<void (ChangeSource)>        onDetectChanges;
+-   boost::signal<void (core::FilePath)>      onSourceEditorFileSaved;
+-   boost::signal<void(bool)>                 onDeferredInit;
+-   boost::signal<void(bool)>                 afterSessionInitHook;
+-   boost::signal<void(bool)>                 onBackgroundProcessing;
+-   boost::signal<void(bool)>                 onShutdown;
+-   boost::signal<void ()>                    onQuit;
+-   boost::signal<void (const std::vector<std::string>&)>
++   boost::signals2::signal<void()>                     onUserInterrupt;
++   boost::signals2::signal<void (ChangeSource)>        onDetectChanges;
++   boost::signals2::signal<void (core::FilePath)>      onSourceEditorFileSaved;
++   boost::signals2::signal<void(bool)>                 onDeferredInit;
++   boost::signals2::signal<void(bool)>                 afterSessionInitHook;
++   boost::signals2::signal<void(bool)>                 onBackgroundProcessing;
++   boost::signals2::signal<void(bool)>                 onShutdown;
++   boost::signals2::signal<void ()>                    onQuit;
++   boost::signals2::signal<void (const std::vector<std::string>&)>
+                                              onLibPathsChanged;
+-   boost::signal<void (const std::string&)>  onPackageLoaded;
+-   boost::signal<void ()>                    onPackageLibraryMutated;
+-   boost::signal<void ()>                    onPreferencesSaved;
+-   boost::signal<void (const DistributedEvent&)>
++   boost::signals2::signal<void (const std::string&)>  onPackageLoaded;
++   boost::signals2::signal<void ()>                    onPackageLibraryMutated;
++   boost::signals2::signal<void ()>                    onPreferencesSaved;
++   boost::signals2::signal<void (const DistributedEvent&)>
+                                              onDistributedEvent;
+-   boost::signal<void (core::FilePath)>      onPermissionsChanged;
++   boost::signals2::signal<void (core::FilePath)>      onPermissionsChanged;
+ 
+    // signal for detecting extended type of documents
+-   boost::signal<std::string(boost::shared_ptr<source_database::SourceDocument>),
++   boost::signals2::signal<std::string(boost::shared_ptr<source_database::SourceDocument>),
+                  firstNonEmpty<std::string> > onDetectSourceExtendedType;
+ };
+ 
+--- rstudio-1.1.143/src/cpp/session/include/session/SessionSourceDatabase.hpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/session/include/session/SessionSourceDatabase.hpp	2019-04-30 22:18:33.162037081 +0200
+@@ -21,7 +21,7 @@
+ 
+ #include <boost/utility.hpp>
+ #include <boost/shared_ptr.hpp>
+-#include <boost/signals.hpp>
++#include <boost/signals2/signal.hpp>
+ 
+ #include <core/FilePath.hpp>
+ #include <core/json/Json.hpp>
+@@ -203,14 +203,14 @@
+ // source database events
+ struct Events : boost::noncopyable
+ {
+-   boost::signal<void(boost::shared_ptr<SourceDocument>)>      onDocUpdated;
+-   boost::signal<void(const std::string&,
++   boost::signals2::signal<void(boost::shared_ptr<SourceDocument>)>      onDocUpdated;
++   boost::signals2::signal<void(const std::string&,
+                       boost::shared_ptr<SourceDocument>)>      onDocRenamed;
+-   boost::signal<void(const std::string&)>                     onDocAdded;
+-   boost::signal<void(
++   boost::signals2::signal<void(const std::string&)>                     onDocAdded;
++   boost::signals2::signal<void(
+       boost::shared_ptr<source_database::SourceDocument>)>     onDocPendingRemove;
+-   boost::signal<void(const std::string&, const std::string&)> onDocRemoved;
+-   boost::signal<void()>                                       onRemoveAll;
++   boost::signals2::signal<void(const std::string&, const std::string&)> onDocRemoved;
++   boost::signals2::signal<void()>                                       onRemoveAll;
+ };
+ 
+ Events& events();
+--- rstudio-1.1.143/src/cpp/session/modules/SessionPlots.hpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/session/modules/SessionPlots.hpp	2019-05-01 07:09:47.229018563 +0200
+@@ -16,7 +16,7 @@
+ #ifndef SESSION_PLOTS_HPP
+ #define SESSION_PLOTS_HPP
+ 
+-#include <boost/signals.hpp>
++#include <boost/signals2/signal.hpp>
+ 
+ namespace rstudio {
+ namespace core {
+@@ -35,9 +35,9 @@
+ 
+ struct Events : boost::noncopyable
+ {
+-   boost::signal<void()> onBeforeNewPlot;
+-   boost::signal<void()> onBeforeNewGridPage;
+-   boost::signal<void()> onNewPlot;
++   boost::signals2::signal<void()> onBeforeNewPlot;
++   boost::signals2::signal<void()> onBeforeNewGridPage;
++   boost::signals2::signal<void()> onNewPlot;
+ };
+ 
+ Events& events();
+--- rstudio-1.1.143/src/cpp/ext/websocketpp/transport/asio/connection.hpp.orig	2019-05-01 07:53:58.222087293 +0200
++++ rstudio-1.1.143/src/cpp/ext/websocketpp/transport/asio/connection.hpp	2019-05-01 07:54:08.975987464 +0200
+@@ -422,7 +422,7 @@
+         m_io_service = io_service;
+ 
+         if (config::enable_multithreading) {
+-            m_strand = lib::make_shared<boost::asio::strand>(
++            m_strand = lib::make_shared<boost::asio::io_service::strand>(
+                 lib::ref(*io_service));
+ 
+             m_async_read_handler = m_strand->wrap(lib::bind(
+--- rstudio-1.1.143/src/cpp/session/include/session/projects/SessionProjects.hpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/session/include/session/projects/SessionProjects.hpp	2019-05-01 07:54:58.831948702 +0200
+@@ -22,7 +22,7 @@
+ #include <boost/utility.hpp>
+ #include <boost/shared_ptr.hpp>
+ #include <boost/foreach.hpp>
+-#include <boost/signals.hpp>
++#include <boost/signals/signal.hpp>
+ 
+ #include <core/FileInfo.hpp>
+ #include <core/FilePath.hpp>
+@@ -219,10 +219,10 @@
+ 
+    bool hasFileMonitor_;
+    std::vector<std::string> monitorSubscribers_;
+-   boost::signal<void(const tree<core::FileInfo>&)> onMonitoringEnabled_;
+-   boost::signal<void(const std::vector<core::system::FileChangeEvent>&)>
++   boost::signals::signal<void(const tree<core::FileInfo>&)> onMonitoringEnabled_;
++   boost::signals::signal<void(const std::vector<core::system::FileChangeEvent>&)>
+                                                             onFilesChanged_;
+-   boost::signal<void()> onMonitoringDisabled_;
++   boost::signals::signal<void()> onMonitoringDisabled_;
+ };
+ 
+ ProjectContext& projectContext();
+--- rstudio-1.1.143/src/cpp/session/modules/rmarkdown/SessionRmdNotebook.hpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/session/modules/rmarkdown/SessionRmdNotebook.hpp	2019-05-01 08:19:48.877151705 +0200
+@@ -18,7 +18,7 @@
+ #define SESSION_RMARKDOWN_NOTEBOOK_HPP
+ 
+ #include <ctime>
+-#include <boost/signals.hpp>
++#include <boost/signals2/signal.hpp>
+ #include <core/json/Json.hpp>
+ 
+ #define kChunkLibDir "lib"
+@@ -76,24 +76,24 @@
+ struct Events : boost::noncopyable
+ {
+    // Document {0}, chunk {1} from context id {3} execution completed
+-   boost::signal<void(const std::string&, const std::string&,
++   boost::signals::signal<void(const std::string&, const std::string&,
+                       const std::string&)> 
+                 onChunkExecCompleted;
+ 
+    // Document {0}, chunk {1} had console output of type {2} and text {3}
+-   boost::signal<void(const std::string&, const std::string&, int, 
++   boost::signals::signal<void(const std::string&, const std::string&, int, 
+                 const std::string&)>
+                 onChunkConsoleOutput;
+ 
+-   boost::signal<void(const core::FilePath&, const core::FilePath&, 
++   boost::signals::signal<void(const core::FilePath&, const core::FilePath&, 
+                       const core::json::Value& metadata, unsigned ordinal)> 
+                          onPlotOutput;
+-   boost::signal<void(const core::FilePath&, const core::FilePath&,
++   boost::signals::signal<void(const core::FilePath&, const core::FilePath&,
+                       const core::json::Value& metadata)> onHtmlOutput;
+-   boost::signal<void(const core::json::Object&)> onErrorOutput;
+-   boost::signal<void(const core::FilePath&, const core::FilePath&,
++   boost::signals::signal<void(const core::json::Object&)> onErrorOutput;
++   boost::signals::signal<void(const core::FilePath&, const core::FilePath&,
+                       const core::json::Value& metadata)> onDataOutput;
+-   boost::signal<void(Condition condition, const std::string& message)> 
++   boost::signals::signal<void(Condition condition, const std::string& message)> 
+                          onCondition;
+ };
+ 
+--- rstudio-1.1.143/src/cpp/session/SessionModuleContext.cpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/session/SessionModuleContext.cpp	2019-05-01 08:21:14.344989539 +0200
+@@ -19,7 +19,7 @@
+ 
+ #include <boost/assert.hpp>
+ #include <boost/utility.hpp>
+-#include <boost/signal.hpp>
++#include <boost/signals/signal.hpp>
+ #include <boost/format.hpp>
+ #include <boost/numeric/conversion/cast.hpp>
+ 
+@@ -571,12 +571,12 @@
+    
+    int nextGroup_; 
+    
+-   boost::signal<void(const r::session::RSuspendOptions&,Settings*),
++   boost::signals2::signal<void(const r::session::RSuspendOptions&,Settings*),
+                  boost::last_value<void>,
+                  int,
+                  std::less<int> > suspendSignal_;
+                   
+-   boost::signal<void(const Settings&),
++   boost::signals2::signal<void(const Settings&),
+                  boost::last_value<void>,
+                  int,
+                  std::greater<int> > resumeSignal_;

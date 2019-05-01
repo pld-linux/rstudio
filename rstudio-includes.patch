@@ -1,0 +1,10 @@
+--- rstudio-1.1.143/src/cpp/core/Trace.cpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/core/Trace.cpp	2019-04-30 19:46:54.096418350 +0200
+@@ -16,6 +16,7 @@
+ 
+ #include <core/Trace.hpp>
+ 
++#include <iostream>
+ #include <map>
+ 
+ #include <boost/utility.hpp>

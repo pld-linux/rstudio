@@ -29,6 +29,9 @@ Source10:	shinyapps_0.3.61_d3ab9e1cdd02f0067d69fe6fc816a61c8a5f2218.tar.xz
 # Source10-md5:	3f5ce12f86b00a2e77067d7769fffe08
 Source11:	rsconnect_0.7.0-2_fa486121f8f75701e2044f33d2901e610160322f.tar.xz
 # Source11-md5:	938ca5efbed1ead619de42488ed30760
+Patch0:		%{name}-includes.patch
+Patch1:		%{name}-openssl.patch
+Patch2:		%{name}-boost.patch
 URL:		http://rstudio.org/
 BuildRequires:	Qt5WebKit-devel
 BuildRequires:	Qt5XmlPatterns-devel
@@ -54,6 +57,9 @@ or Linux) or even over the web using RStudio Server.
 
 %prep
 %setup -q
+%patch0 -p1
+%patch1 -p1
+%patch2 -p1
 mkdir -p dependencies/common/dictionaries
 unzip -qq %{SOURCE1} -d dependencies/common/dictionaries
 mkdir -p src/gwt/lib/gwt

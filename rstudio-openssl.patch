@@ -1,0 +1,22 @@
+--- rstudio-1.1.143/src/cpp/core/http/SocketProxy.cpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/core/http/SocketProxy.cpp	2019-04-30 20:29:46.259001047 +0200
+@@ -145,18 +145,11 @@
+ 
+ namespace {
+ 
+-#ifndef _WIN32
+-bool isSslShutdownError(const core::Error& error)
+-{
+-   return error.code().category() == boost::asio::error::get_ssl_category() &&
+-          error.code().value() == ERR_PACK(ERR_LIB_SSL, 0, SSL_R_SHORT_READ);
+-}
+-#else
+ bool isSslShutdownError(const core::Error& error)
+ {
+    return false;
+ }
+-#endif
++
+ } // anonymous namespace
+ 
+ void SocketProxy::handleError(const boost::system::error_code& e,
