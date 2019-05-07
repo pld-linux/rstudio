@@ -2,10 +2,10 @@ Summary:	IDE for R
 Summary(pl.UTF-8):	IDE dla R
 Name:		rstudio
 Version:	1.1.143
-Release:	1
-License:	AGPLv3
-Group:		Applications
-Source0:	https://github.com/rstudio/rstudio/archive/v%{version}.tar.gz?/%{name}-%{version}.tar.gz
+Release:	2
+License:	AGPL v3
+Group:		Development/Tools
+Source0:	https://github.com/rstudio/rstudio/archive/v%{version}/%{name}-%{version}.tar.gz
 # Source0-md5:	ae531eed17e70a6d4f2d8560696b466e
 Source1:	https://s3.amazonaws.com/rstudio-dictionaries/core-dictionaries.zip
 # Source1-md5:	0e03798b8e53096c4a906bde05e32378
@@ -32,18 +32,39 @@ Source11:	rsconnect_0.7.0-2_fa486121f8f75701e2044f33d2901e610160322f.tar.xz
 Patch0:		%{name}-includes.patch
 Patch1:		%{name}-openssl.patch
 Patch2:		%{name}-boost.patch
+Patch3:		websocketpp-boost.patch
 URL:		http://rstudio.org/
-BuildRequires:	Qt5WebKit-devel
-BuildRequires:	Qt5XmlPatterns-devel
+BuildRequires:	Qt5Core-devel >= 5.4.0
+BuildRequires:	Qt5DBus-devel >= 5.4.0
+BuildRequires:	Qt5Gui-devel >= 5.4.0
+BuildRequires:	Qt5Network-devel >= 5.4.0
+BuildRequires:	Qt5OpenGL-devel >= 5.4.0
+BuildRequires:	Qt5Positioning-devel >= 5.4.0
+BuildRequires:	Qt5PrintSupport-devel >= 5.4.0
+BuildRequires:	Qt5Qml-devel >= 5.4.0
+BuildRequires:	Qt5Quick-devel >= 5.4.0
+BuildRequires:	Qt5Sensors-devel >= 5.4.0
+BuildRequires:	Qt5Sql-devel >= 5.4.0
+BuildRequires:	Qt5Svg-devel >= 5.4.0
+BuildRequires:	Qt5WebKit-devel >= 5.4.0
+BuildRequires:	Qt5Widgets-devel >= 5.4.0
+BuildRequires:	Qt5Xml-devel >= 5.4.0
+BuildRequires:	Qt5XmlPatterns-devel >= 5.4.0
 BuildRequires:	R >= 2.11.1
-BuildRequires:	boost-devel >= 1.50
+BuildRequires:	boost-devel >= 1.63.0
 BuildRequires:	clang-devel >= 3.5.0
-BuildRequires:	cmake >= 2.8.0
+BuildRequires:	cmake >= 2.8.8
 BuildRequires:	java-junit
+BuildRequires:	jdk
+BuildRequires:	libstdc++-devel
+BuildRequires:	libuuid-devel
 BuildRequires:	openssl-devel
 BuildRequires:	pam-devel
 BuildRequires:	pandoc
-BuildRequires:	pango-devel
+BuildRequires:	qt5-build >= 5.4.0
+BuildRequires:	zlib-devel
+Requires:	Qt5WebKit >= 5.4.0
+Requires:	Qt5Widgets >= 5.4.0
 Requires:	R >= 2.11.1
 Requires:	pandoc
 Requires:	clang >= 3.5.0
@@ -51,15 +72,25 @@ ExclusiveArch:	%{ix86} %{x8664}
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
-RStudio(tm) is a free and open source integrated development
-environment (IDE) for R. You can run it on your desktop (Windows, Mac,
-or Linux) or even over the web using RStudio Server.
+RStudio is a free and open source integrated development environment
+(IDE) for R. You can run it on your desktop (Windows, Mac, or Linux)
+or even over the web using RStudio Server.
+
+%description -l pl.UTF-8
+RStudio to wolnodostępne, mające otwarte źródła zintegrowane
+środowisko programistyczne (IDE) dla języka R. Można je uruchamiać na
+własnym komputerze (w systemie Windows, Mac lub Linux), a także przez
+sieć przy użyciu serwera RStudio.
 
 %prep
 %setup -q
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
+cd src/cpp/ext
+%patch3 -p1
+cd ../../..
+
 mkdir -p dependencies/common/dictionaries
 unzip -qq %{SOURCE1} -d dependencies/common/dictionaries
 mkdir -p src/gwt/lib/gwt
@@ -96,14 +127,13 @@ ln -s %{_libdir}/libclang.so dependencies/common/libclang/3.5/linux/x86_64/libcl
 %build
 install -d build
 cd build
-%cmake \
-	-DQT_QMAKE_EXECUTABLE=/usr/bin/qt5-qmake \
-	-DCMAKE_CXX_FLAGS_RELEASE="${CXXFLAGS:-%{rpmcxxflags} -DNDEBUG -DQT_NO_DEBUG}" \
-	-DCMAKE_C_FLAGS_RELEASE="${CFLAGS:-%{rpmcflags} -DNDEBUG -DQT_NO_DEBUG}" \
-	-DRSTUDIO_TARGET=Desktop \
+%cmake .. \
 	-DCMAKE_BUILD_TYPE=Release \
+	-DCMAKE_C_FLAGS_RELEASE="${CFLAGS:-%{rpmcflags} -DNDEBUG -DQT_NO_DEBUG}" \
+	-DCMAKE_CXX_FLAGS_RELEASE="${CXXFLAGS:-%{rpmcxxflags} -DNDEBUG -DQT_NO_DEBUG}" \
 	-DCMAKE_INSTALL_PREFIX=%{_libdir}/%{name} \
-	../
+	-DQT_QMAKE_EXECUTABLE=/usr/bin/qt5-qmake \
+	-DRSTUDIO_TARGET=Desktop
 
 %{__make}
 
@@ -121,8 +151,8 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(644,root,root,755)
-%doc COPYING NOTICE README.md
-%attr(755,root,root) %{_bindir}/*
+%doc COPYING NEWS.md NOTICE README.md
+%attr(755,root,root) %{_bindir}/rstudio
 %dir %{_libdir}/%{name}
 %{_libdir}/%{name}/R
 %dir %{_libdir}/%{name}/bin
@@ -135,7 +165,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/%{name}/www-symbolmaps
 %{_libdir}/%{name}/rstudio.png
 %{_desktopdir}/rstudio.desktop
-%{_iconsdir}/hicolor/*x*/apps/*
-%{_iconsdir}/hicolor/*x*/mimetypes/*
-%{_datadir}/mime/packages/*.xml
+%{_iconsdir}/hicolor/*x*/apps/rstudio.png*
+%{_iconsdir}/hicolor/*x*/mimetypes/application-x-r-data.png
+%{_iconsdir}/hicolor/*x*/mimetypes/application-x-r-project.png
+%{_datadir}/mime/packages/rstudio.xml
 %{_pixmapsdir}/rstudio.png

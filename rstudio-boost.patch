@@ -50,26 +50,6 @@
  }
  
  Error systemError(int value,
---- rstudio-1.1.143/src/cpp/core/Error.cpp.orig	2017-04-12 00:42:14.000000000 +0200
-+++ rstudio-1.1.143/src/cpp/core/Error.cpp	2019-04-30 18:50:13.489560404 +0200
-@@ -165,7 +165,7 @@
- Error systemError(int value, const ErrorLocation& location) 
- {
-    using namespace boost::system ;
--   return Error(error_code(value, get_system_category()), location);
-+   return Error(error_code(value, system_category()), location);
- }
- 
- Error systemError(int value,
-@@ -173,7 +173,7 @@
-                   const ErrorLocation& location)
- {
-    using namespace boost::system ;
--   return Error(error_code(value, get_system_category()), cause, location);
-+   return Error(error_code(value, system_category()), cause, location);
- }
- 
- Error systemError(int value,
 --- rstudio-1.1.143/src/cpp/core/FilePath.cpp.orig	2017-04-12 00:42:14.000000000 +0200
 +++ rstudio-1.1.143/src/cpp/core/FilePath.cpp	2019-04-30 19:08:36.191306900 +0200
 @@ -950,7 +950,7 @@
@@ -131,23 +111,6 @@
     }
     
     void setIsPrimitive(bool isPrimitive)
---- rstudio-1.1.143/src/cpp/monitor/include/monitor/MonitorClient.hpp.orig	2017-04-12 00:42:14.000000000 +0200
-+++ rstudio-1.1.143/src/cpp/monitor/include/monitor/MonitorClient.hpp	2019-04-30 21:37:56.483122815 +0200
-@@ -27,14 +27,6 @@
- 
- #include "MonitorConstants.hpp"
- 
--// forward declaration; boost/asio/io_service may cause errors if included more
--// than once (Boost 1.50 on Win x64 only)
--namespace RSTUDIO_BOOST_NAMESPACE {
--namespace asio {
--   class io_service;
--}
--}
--
- namespace rstudio {
- namespace monitor {
- 
 --- rstudio-1.1.143/src/cpp/r/include/r/session/RConsoleHistory.hpp.orig	2017-04-12 00:42:14.000000000 +0200
 +++ rstudio-1.1.143/src/cpp/r/include/r/session/RConsoleHistory.hpp	2019-04-30 21:38:32.871700755 +0200
 @@ -20,7 +20,7 @@
@@ -336,7 +299,7 @@
  
  #include <boost/regex.hpp>
 -#include <boost/signals.hpp>
-+#include <boost/signals2/signals.hpp>
++#include <boost/signals2/signal.hpp>
  #include <boost/circular_buffer.hpp>
  #include <boost/enable_shared_from_this.hpp>
  
@@ -500,7 +463,7 @@
  #include <boost/shared_ptr.hpp>
  #include <boost/foreach.hpp>
 -#include <boost/signals.hpp>
-+#include <boost/signals/signal.hpp>
++#include <boost/signals2/signal.hpp>
  
  #include <core/FileInfo.hpp>
  #include <core/FilePath.hpp>
@@ -510,11 +473,11 @@
     std::vector<std::string> monitorSubscribers_;
 -   boost::signal<void(const tree<core::FileInfo>&)> onMonitoringEnabled_;
 -   boost::signal<void(const std::vector<core::system::FileChangeEvent>&)>
-+   boost::signals::signal<void(const tree<core::FileInfo>&)> onMonitoringEnabled_;
-+   boost::signals::signal<void(const std::vector<core::system::FileChangeEvent>&)>
++   boost::signals2::signal<void(const tree<core::FileInfo>&)> onMonitoringEnabled_;
++   boost::signals2::signal<void(const std::vector<core::system::FileChangeEvent>&)>
                                                              onFilesChanged_;
 -   boost::signal<void()> onMonitoringDisabled_;
-+   boost::signals::signal<void()> onMonitoringDisabled_;
++   boost::signals2::signal<void()> onMonitoringDisabled_;
  };
  
  ProjectContext& projectContext();
@@ -534,56 +497,227 @@
  {
     // Document {0}, chunk {1} from context id {3} execution completed
 -   boost::signal<void(const std::string&, const std::string&,
-+   boost::signals::signal<void(const std::string&, const std::string&,
++   boost::signals2::signal<void(const std::string&, const std::string&,
                        const std::string&)> 
                  onChunkExecCompleted;
  
     // Document {0}, chunk {1} had console output of type {2} and text {3}
 -   boost::signal<void(const std::string&, const std::string&, int, 
-+   boost::signals::signal<void(const std::string&, const std::string&, int, 
++   boost::signals2::signal<void(const std::string&, const std::string&, int, 
                  const std::string&)>
                  onChunkConsoleOutput;
  
 -   boost::signal<void(const core::FilePath&, const core::FilePath&, 
-+   boost::signals::signal<void(const core::FilePath&, const core::FilePath&, 
++   boost::signals2::signal<void(const core::FilePath&, const core::FilePath&, 
                        const core::json::Value& metadata, unsigned ordinal)> 
                           onPlotOutput;
 -   boost::signal<void(const core::FilePath&, const core::FilePath&,
-+   boost::signals::signal<void(const core::FilePath&, const core::FilePath&,
++   boost::signals2::signal<void(const core::FilePath&, const core::FilePath&,
                        const core::json::Value& metadata)> onHtmlOutput;
 -   boost::signal<void(const core::json::Object&)> onErrorOutput;
 -   boost::signal<void(const core::FilePath&, const core::FilePath&,
-+   boost::signals::signal<void(const core::json::Object&)> onErrorOutput;
-+   boost::signals::signal<void(const core::FilePath&, const core::FilePath&,
++   boost::signals2::signal<void(const core::json::Object&)> onErrorOutput;
++   boost::signals2::signal<void(const core::FilePath&, const core::FilePath&,
                        const core::json::Value& metadata)> onDataOutput;
 -   boost::signal<void(Condition condition, const std::string& message)> 
-+   boost::signals::signal<void(Condition condition, const std::string& message)> 
++   boost::signals2::signal<void(Condition condition, const std::string& message)> 
                           onCondition;
  };
  
 --- rstudio-1.1.143/src/cpp/session/SessionModuleContext.cpp.orig	2017-04-12 00:42:14.000000000 +0200
 +++ rstudio-1.1.143/src/cpp/session/SessionModuleContext.cpp	2019-05-01 08:21:14.344989539 +0200
-@@ -19,7 +19,7 @@
+@@ -19,7 +19,8 @@
  
  #include <boost/assert.hpp>
  #include <boost/utility.hpp>
 -#include <boost/signal.hpp>
-+#include <boost/signals/signal.hpp>
++#include <boost/signals2/last_value.hpp>
++#include <boost/signals2/signal.hpp>
  #include <boost/format.hpp>
  #include <boost/numeric/conversion/cast.hpp>
  
-@@ -571,12 +571,12 @@
+@@ -571,13 +572,13 @@
     
     int nextGroup_; 
     
 -   boost::signal<void(const r::session::RSuspendOptions&,Settings*),
+-                 boost::last_value<void>,
 +   boost::signals2::signal<void(const r::session::RSuspendOptions&,Settings*),
-                  boost::last_value<void>,
++                 boost::signals2::last_value<void>,
                   int,
                   std::less<int> > suspendSignal_;
                    
 -   boost::signal<void(const Settings&),
+-                 boost::last_value<void>,
 +   boost::signals2::signal<void(const Settings&),
-                  boost::last_value<void>,
++                 boost::signals2::last_value<void>,
                   int,
                   std::greater<int> > resumeSignal_;
+ };
+--- rstudio-1.1.143/src/cpp/session/SessionMain.cpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/session/SessionMain.cpp	2019-05-07 17:10:57.302926193 +0200
+@@ -33,7 +33,6 @@
+ #include <boost/lexical_cast.hpp>
+ #include <boost/format.hpp>
+ 
+-#include <boost/signals.hpp>
+ #include <boost/date_time/posix_time/posix_time.hpp>
+ #include <boost/algorithm/string/predicate.hpp>
+ #include <boost/algorithm/string/join.hpp>
+--- rstudio-1.1.143/src/cpp/session/modules/SessionRParser.cpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/session/modules/SessionRParser.cpp	2019-05-07 18:07:34.070800364 +0200
+@@ -390,7 +390,7 @@
+    if (!failed)
+    {
+       DEBUG("--- Found function in pkgInfo index: " << *fnInfo.binding());
+-      return fnInfo.performsNse();
++      return bool(fnInfo.performsNse());
+    }
+    
+    // Handle some special cases first.
+--- rstudio-1.1.143/src/cpp/session/modules/build/SessionSourceCpp.cpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/session/modules/build/SessionSourceCpp.cpp	2019-05-07 18:13:46.346942192 +0200
+@@ -15,7 +15,6 @@
+ 
+ #include "SessionSourceCpp.hpp"
+ 
+-#include <boost/signal.hpp>
+ #include <boost/algorithm/string/trim.hpp>
+ #include <boost/algorithm/string/predicate.hpp>
+ #include <boost/algorithm/string/join.hpp>
+--- rstudio-1.1.143/src/cpp/session/modules/rmarkdown/NotebookPlots.hpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/session/modules/rmarkdown/NotebookPlots.hpp	2019-05-07 18:25:48.121369223 +0200
+@@ -18,7 +18,7 @@
+ #define SESSION_NOTEBOOK_PLOTS_HPP
+ 
+ #include <boost/function.hpp>
+-#include <boost/signals/connection.hpp>
++#include <boost/signals2/connection.hpp>
+ #include <core/FilePath.hpp>
+ #include <r/RSexp.hpp>
+ 
+@@ -80,9 +80,9 @@
+ 
+    unsigned lastOrdinal_;
+ 
+-   boost::signals::connection onBeforeNewPlot_;
+-   boost::signals::connection onBeforeNewGridPage_;
+-   boost::signals::connection onNewPlot_;
++   boost::signals2::connection onBeforeNewPlot_;
++   boost::signals2::connection onBeforeNewGridPage_;
++   boost::signals2::connection onNewPlot_;
+ 
+    double width_;
+    double height_;
+--- rstudio-1.1.143/src/cpp/session/modules/rmarkdown/NotebookExec.hpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/session/modules/rmarkdown/NotebookExec.hpp	2019-05-07 18:26:45.201022069 +0200
+@@ -18,7 +18,7 @@
+ 
+ #include <session/SessionModuleContext.hpp>
+ 
+-#include <boost/signal.hpp>
++#include <boost/signals2/signal.hpp>
+ 
+ #include <core/json/Json.hpp>
+ 
+@@ -99,7 +99,7 @@
+    bool hasErrors_;
+ 
+    std::vector<boost::shared_ptr<NotebookCapture> > captures_;
+-   std::vector<boost::signals::connection> connections_;
++   std::vector<boost::signals2::connection> connections_;
+ };
+ 
+ } // namespace notebook
+--- rstudio-1.1.143/src/cpp/session/modules/rmarkdown/NotebookAlternateEngines.cpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/session/modules/rmarkdown/NotebookAlternateEngines.cpp	2019-05-07 18:28:01.345005619 +0200
+@@ -142,7 +142,7 @@
+       LOG_ERROR(error);
+    
+    // capture console output, error
+-   boost::signals::scoped_connection consoleHandler =
++   boost::signals2::scoped_connection consoleHandler =
+          module_context::events().onConsoleOutput.connect(
+             boost::bind(chunkConsoleOutputHandler,
+                         _1,
+@@ -219,7 +219,7 @@
+       LOG_ERROR(error);
+    
+    // capture console output, error
+-   boost::signals::scoped_connection consoleHandler =
++   boost::signals2::scoped_connection consoleHandler =
+          module_context::events().onConsoleOutput.connect(
+             boost::bind(chunkConsoleOutputHandler,
+                         _1,
+@@ -363,7 +363,7 @@
+       LOG_ERROR(error);
+    
+    // capture console output, error
+-   boost::signals::scoped_connection consoleHandler =
++   boost::signals2::scoped_connection consoleHandler =
+          module_context::events().onConsoleOutput.connect(
+             boost::bind(chunkConsoleOutputHandler,
+                         _1,
+--- rstudio-1.1.143/src/cpp/session/modules/rmarkdown/NotebookCapture.cpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/session/modules/rmarkdown/NotebookCapture.cpp	2019-05-07 18:31:49.423604450 +0200
+@@ -13,6 +13,8 @@
+  *
+  */
+ 
++#include <boost/make_shared.hpp>
++
+ #include "SessionRmdNotebook.hpp"
+ #include "NotebookCapture.hpp"
+ 
+--- rstudio-1.1.143/src/cpp/session/modules/rmarkdown/NotebookExec.cpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/session/modules/rmarkdown/NotebookExec.cpp	2019-05-07 18:41:06.369408303 +0200
+@@ -441,7 +441,7 @@
+    }
+ 
+    // unhook all our event handlers
+-   BOOST_FOREACH(const boost::signals::connection connection, connections_) 
++   BOOST_FOREACH(const boost::signals2::connection connection, connections_) 
+    {
+       connection.disconnect();
+    }
+--- rstudio-1.1.143/src/cpp/session/modules/rmarkdown/NotebookPlots.cpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/session/modules/rmarkdown/NotebookPlots.cpp	2019-05-07 18:52:17.788159856 +0200
+@@ -20,7 +20,6 @@
+ 
+ #include <boost/format.hpp>
+ #include <boost/foreach.hpp>
+-#include <boost/signals/connection.hpp>
+ 
+ #include <core/system/FileMonitor.hpp>
+ #include <core/StringUtils.hpp>
+--- rstudio-1.1.143/src/cpp/session/modules/rmarkdown/NotebookQueue.cpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/session/modules/rmarkdown/NotebookQueue.cpp	2019-05-07 18:53:26.498462556 +0200
+@@ -87,7 +87,7 @@
+       pInput_->enque(kThreadQuitCommand);
+ 
+       // unregister handlers
+-      BOOST_FOREACH(boost::signals::connection connection, handlers_)
++      BOOST_FOREACH(boost::signals2::connection connection, handlers_)
+       {
+          connection.disconnect();
+       }
+@@ -638,7 +638,7 @@
+    boost::shared_ptr<ChunkExecContext> execContext_;
+ 
+    // registered signal handlers
+-   std::vector<boost::signals::connection> handlers_;
++   std::vector<boost::signals2::connection> handlers_;
+ 
+    // the thread which submits console input, and the queue which feeds it
+    boost::thread console_;
+--- rstudio-1.1.143/src/cpp/session/http/SessionLocalStreamHttpConnectionListener.hpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/session/http/SessionLocalStreamHttpConnectionListener.hpp	2019-05-07 19:04:36.460299876 +0200
+@@ -77,7 +77,7 @@
+       if (permittedClients_.size() > 0)
+       {
+          // get socket
+-         int socket = ptrConnection->socket().native();
++         int socket = ptrConnection->socket().native_handle();
+ 
+          // get client identity
+          core::system::user::UserIdentity userIdentity;
