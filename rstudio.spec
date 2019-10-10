@@ -2,7 +2,7 @@ Summary:	IDE for R
 Summary(pl.UTF-8):	IDE dla R
 Name:		rstudio
 Version:	1.1.143
-Release:	2
+Release:	3
 License:	AGPL v3
 Group:		Development/Tools
 Source0:	https://github.com/rstudio/rstudio/archive/v%{version}/%{name}-%{version}.tar.gz
