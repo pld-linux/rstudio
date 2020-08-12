@@ -15,10 +15,6 @@ Source3:	https://s3.amazonaws.com/rstudio-buildtools/gin-1.5.zip
 # Source3-md5:	2409168cc18bf5f341e107e6887fe359
 Source4:	https://s3.amazonaws.com/rstudio-buildtools/mathjax-26.zip
 # Source4-md5:	94fcab0aead8f730cd21e26dcb5a330d
-Source6:	https://s3.amazonaws.com/rstudio-buildtools/libclang-3.5.zip
-# Source6-md5:	cf1a43d2d6203a765ef16d7b12382c8a
-Source7:	https://s3.amazonaws.com/rstudio-buildtools/libclang-builtin-headers.zip
-# Source7-md5:	e6790a3ee6c371968eba865fc0a84daf
 Source8:	packrat_0.4.1.24_bbdab984134678db91b8f372e2550e59f266de37.tar.xz
 # Source8-md5:	7607927c4adf507d67d2ba18d38c7bb0
 Source9:	rmarkdown_1.4.0.9001_b7434dcc5abe87cb27f01cbffb9ca94e1539d322.tar.xz
@@ -49,6 +45,7 @@ BuildRequires:	Qt5Widgets-devel >= 5.4.0
 BuildRequires:	Qt5Xml-devel >= 5.4.0
 BuildRequires:	Qt5XmlPatterns-devel >= 5.4.0
 BuildRequires:	R >= 2.11.1
+BuildRequires:	ant
 BuildRequires:	boost-devel >= 1.63.0
 BuildRequires:	clang-devel >= 3.5.0
 BuildRequires:	cmake >= 2.8.8
@@ -66,7 +63,6 @@ Requires:	Qt5Widgets >= 5.4.0
 Requires:	R >= 2.11.1
 Requires:	pandoc
 Requires:	clang >= 3.5.0
-ExclusiveArch:	%{ix86} %{x8664}
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -112,15 +108,6 @@ mkdir -p dependencies/common/libclang/3.5/include/
 ln -s /usr/include/clang-c dependencies/common/libclang/3.5/include/
 mkdir -p dependencies/common/libclang/builtin-headers
 ln -s /usr/lib64/clang/3.5.0/include dependencies/common/libclang/builtin-headers/3.5
-#dependencies/common/libclang/builtin-headers/libc++/3.5
-%ifarch %{ix86}
-mkdir -p dependencies/common/libclang/3.5/linux/x86
-ln -s %{_libdir}/libclang.so dependencies/common/libclang/3.5/linux/x86/libclang.so
-%endif
-%ifarch %{x8664}
-mkdir -p dependencies/common/libclang/3.5/linux/x86_64
-ln -s %{_libdir}/libclang.so dependencies/common/libclang/3.5/linux/x86_64/libclang.so
-%endif
 
 %{__sed} -E -i -e '1s,#!\s*/usr/bin/env\s+bash(\s|$),#!/bin/bash\1,' \
       src/cpp/desktop/rstudio-backtrace.sh.in \
