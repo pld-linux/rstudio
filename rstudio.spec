@@ -2,7 +2,7 @@ Summary:	IDE for R
 Summary(pl.UTF-8):	IDE dla R
 Name:		rstudio
 Version:	1.1.143
-Release:	3
+Release:	4
 License:	AGPL v3
 Group:		Development/Tools
 Source0:	https://github.com/rstudio/rstudio/archive/v%{version}/%{name}-%{version}.tar.gz
@@ -15,8 +15,6 @@ Source3:	https://s3.amazonaws.com/rstudio-buildtools/gin-1.5.zip
 # Source3-md5:	2409168cc18bf5f341e107e6887fe359
 Source4:	https://s3.amazonaws.com/rstudio-buildtools/mathjax-26.zip
 # Source4-md5:	94fcab0aead8f730cd21e26dcb5a330d
-Source5:	https://s3.amazonaws.com/rstudio-buildtools/pandoc-1.12.4.2.zip
-# Source5-md5:	d0f7e3d23b42cb9d26d2783d659040cf
 Source6:	https://s3.amazonaws.com/rstudio-buildtools/libclang-3.5.zip
 # Source6-md5:	cf1a43d2d6203a765ef16d7b12382c8a
 Source7:	https://s3.amazonaws.com/rstudio-buildtools/libclang-builtin-headers.zip
@@ -123,6 +121,15 @@ ln -s %{_libdir}/libclang.so dependencies/common/libclang/3.5/linux/x86/libclang
 mkdir -p dependencies/common/libclang/3.5/linux/x86_64
 ln -s %{_libdir}/libclang.so dependencies/common/libclang/3.5/linux/x86_64/libclang.so
 %endif
+
+%{__sed} -E -i -e '1s,#!\s*/usr/bin/env\s+bash(\s|$),#!/bin/bash\1,' \
+      src/cpp/desktop/rstudio-backtrace.sh.in \
+      src/cpp/session/postback/askpass-passthrough \
+      src/cpp/session/postback/rpostback-askpass \
+      src/cpp/session/postback/rpostback-editfile \
+      src/cpp/session/postback/rpostback-gitssh \
+      src/cpp/session/postback/rpostback-pdfviewer \
+      src/cpp/session/r-ldpath.in
 
 %build
 install -d build
