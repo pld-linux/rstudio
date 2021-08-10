@@ -58,8 +58,8 @@ index 5c8293db..6c7d3524 100644
 -            lib::ref(*service));
 +        m_socket.reset(new boost::asio::ip::tcp::socket(*service));
  
-         if (m_socket_init_handler) {
-             m_socket_init_handler(m_hdl, *m_socket);
+         m_state = READY;
+ 
 diff --git a/websocketpp/transport/asio/security/tls.hpp b/websocketpp/transport/asio/security/tls.hpp
 index c76fd9aa..04ac3790 100644
 --- a/websocketpp/transport/asio/security/tls.hpp
@@ -72,5 +72,5 @@ index c76fd9aa..04ac3790 100644
 -            _WEBSOCKETPP_REF(*service),lib::ref(*m_context));
 +        m_socket.reset(new socket_type(*service, *m_context));
  
-         if (m_socket_init_handler) {
-             m_socket_init_handler(m_hdl, get_socket());
+         m_io_service = service;
+         m_strand = strand;

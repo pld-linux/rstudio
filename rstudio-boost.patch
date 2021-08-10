@@ -754,8 +754,8 @@ index af79150..d049524 100644
  add_definitions(-DBOOST_ENABLE_ASSERT_HANDLER)
 +add_definitions(-DBOOST_BIND_GLOBAL_PLACEHOLDERS)
  
- # explicitly do not use new c++ 11 features for websocketpp
- # they currently do not work with our source
+ # test directory
+ set(TESTS_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp" CACHE STRING "Test includes")
 diff --git a/src/cpp/core/system/PosixChildProcessTracker.cpp b/src/cpp/core/system/PosixChildProcessTracker.cpp
 index 2ee1a81..976da4f 100644
 --- a/src/cpp/core/system/PosixChildProcessTracker.cpp
