@@ -27,6 +27,7 @@ Patch0:		%{name}-includes.patch
 Patch1:		%{name}-openssl.patch
 Patch2:		%{name}-boost.patch
 Patch3:		websocketpp-boost.patch
+Patch4:		boost1.75.patch
 URL:		http://rstudio.org/
 BuildRequires:	Qt5Core-devel >= 5.4.0
 BuildRequires:	Qt5DBus-devel >= 5.4.0
@@ -84,6 +85,7 @@ sieć przy użyciu serwera RStudio.
 cd src/cpp/ext
 %patch3 -p1
 cd ../../..
+%patch4 -p1
 
 mkdir -p dependencies/common/dictionaries
 unzip -qq %{SOURCE1} -d dependencies/common/dictionaries

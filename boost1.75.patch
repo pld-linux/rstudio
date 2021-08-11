@@ -1,0 +1,79 @@
+From 0c6a7374b04827f5db97ed9b4f71c9ff14442c6c Mon Sep 17 00:00:00 2001
+From: Jan Marvin Garbuszus <jan.garbuszus@ruhr-uni-bochum.de>
+Date: Sun, 13 Dec 2020 15:09:23 +0100
+Subject: [PATCH] fix building with boost 1.75
+
+---
+ src/cpp/CMakeLists.txt              | 1 -
+ src/cpp/core/HtmlUtils.cpp          | 3 +++
+ src/cpp/core/file_lock/FileLock.cpp | 3 +++
+ src/cpp/r/session/RStdCallbacks.cpp | 2 ++
+ 4 files changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/src/cpp/CMakeLists.txt b/src/cpp/CMakeLists.txt
+index 18a951fb832..fb16f75b320 100644
+--- a/src/cpp/CMakeLists.txt
++++ b/src/cpp/CMakeLists.txt
+@@ -35,7 +35,6 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/../../CMakeGlobals.txt")
+ 
+ # global directives
+ add_definitions(-DBOOST_ENABLE_ASSERT_HANDLER)
+-add_definitions(-DBOOST_BIND_GLOBAL_PLACEHOLDERS)
+ 
+ # test directory
+ set(TESTS_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp" CACHE STRING "Test includes")
+diff --git a/src/cpp/core/HtmlUtils.cpp b/src/cpp/core/HtmlUtils.cpp
+index c0ffb19f427..ddd28a008ea 100644
+--- a/src/cpp/core/HtmlUtils.cpp
++++ b/src/cpp/core/HtmlUtils.cpp
+@@ -19,6 +19,7 @@
+ #include <boost/format.hpp>
+ #include <boost/foreach.hpp>
+ #include <boost/algorithm/string/predicate.hpp>
++#include <boost/bind/bind.hpp>
+ 
+ #include <core/Base64.hpp>
+ #include <core/FileSerializer.hpp>
+@@ -26,6 +27,8 @@
+ 
+ #include <core/http/Util.hpp>
+ 
++using namespace boost::placeholders;
++
+ namespace rstudio {
+ namespace core {
+ namespace html_utils {
+diff --git a/src/cpp/core/file_lock/FileLock.cpp b/src/cpp/core/file_lock/FileLock.cpp
+index 4495ca02c89..11e444acbe0 100644
+--- a/src/cpp/core/file_lock/FileLock.cpp
++++ b/src/cpp/core/file_lock/FileLock.cpp
+@@ -27,7 +27,10 @@
+ #include <core/http/SocketUtils.hpp>
+ 
+ #include <boost/algorithm/string.hpp>
++#include <boost/bind/bind.hpp>
+ 
++using namespace boost::placeholders;
++
+ namespace rstudio {
+ namespace core {
+ 
+--- rstudio-1.1.143/src/cpp/r/session/RSession.cpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/r/session/RSession.cpp	2021-08-11 09:52:23.269455446 +0200
+@@ -18,6 +18,7 @@
+ 
+ #include <iostream>
+ 
++#include <boost/bind/bind.hpp>
+ #include <boost/regex.hpp>
+ #include <boost/algorithm/string/predicate.hpp>
+ #include <boost/algorithm/string/replace.hpp>
+@@ -74,6 +74,8 @@
+ // constants for graphics scratch subdirectory
+ #define kGraphicsPath "graphics"
+ 
++using namespace boost::placeholders;
++
+ using namespace rstudio::core ;
+ 
+ namespace rstudio {
