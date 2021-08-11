@@ -1,3 +1,5 @@
+%define		rstudio_hash	0260f9dc68869536e20a5c26334a81c96ae19cee
+
 Summary:	IDE for R
 Summary(pl.UTF-8):	IDE dla R
 Name:		rstudio
@@ -131,7 +133,8 @@ cd build
 	-DCMAKE_CXX_FLAGS_RELEASE="${CXXFLAGS:-%{rpmcxxflags} -DNDEBUG -DQT_NO_DEBUG}" \
 	-DCMAKE_INSTALL_PREFIX=%{_libdir}/%{name} \
 	-DQT_QMAKE_EXECUTABLE=/usr/bin/qt5-qmake \
-	-DRSTUDIO_TARGET=Desktop
+	-DRSTUDIO_TARGET=Desktop \
+	-DRSTUDIO_GIT_REVISION_HASH=%{rstudio_hash}
 
 %{__make}
 
