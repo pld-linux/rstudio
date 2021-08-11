@@ -1,0 +1,21 @@
+--- rstudio-1.1.143/src/cpp/core/RegexUtils.cpp.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/src/cpp/core/RegexUtils.cpp	2021-08-11 09:33:16.605646831 +0200
+@@ -15,6 +15,7 @@
+ 
+ #include <core/RegexUtils.hpp>
+ 
++#include <sstream>
+ #include <vector>
+ 
+ #include <boost/regex.hpp>
+--- rstudio-1.1.143/CMakeCompiler.txt.orig	2017-04-12 00:42:14.000000000 +0200
++++ rstudio-1.1.143/CMakeCompiler.txt	2021-08-11 09:45:50.402450033 +0200
+@@ -26,6 +26,8 @@
+ 
+ endif()
+ 
++set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
++
+ # use Rtools on Windows (mainly for Qt Creator)
+ if(WIN32 AND NOT DEFINED RSTUDIO_PACKAGE_BUILD)
+   set(RTOOLS_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../dependencies/windows/Rtools33")
