@@ -62,6 +62,7 @@ BuildRequires:	openssl-devel
 BuildRequires:	pam-devel
 BuildRequires:	pandoc
 BuildRequires:	qt5-build >= 5.4.0
+BuildRequires:	rpmbuild(macros) >= 1.605
 BuildRequires:	zlib-devel
 Requires:	Qt5WebKit >= 5.4.0
 Requires:	Qt5Widgets >= 5.4.0
