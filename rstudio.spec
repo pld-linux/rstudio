@@ -1,4 +1,5 @@
 %define		rstudio_hash	0260f9dc68869536e20a5c26334a81c96ae19cee
+%define		use_jdk		openjdk8
 
 Summary:	IDE for R
 Summary(pl.UTF-8):	IDE dla R
@@ -54,7 +55,7 @@ BuildRequires:	boost-devel >= 1.63.0
 BuildRequires:	clang-devel >= 3.5.0
 BuildRequires:	cmake >= 2.8.8
 BuildRequires:	java-junit
-BuildRequires:	jdk
+%buildrequires_jdk
 BuildRequires:	libstdc++-devel
 BuildRequires:	libuuid-devel
 BuildRequires:	openssl-devel
@@ -127,6 +128,7 @@ ln -s /usr/lib64/clang/3.5.0/include dependencies/common/libclang/builtin-header
 %build
 install -d build
 cd build
+export JAVA_HOME="%{java_home}"
 %cmake .. \
 	-DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_C_FLAGS_RELEASE="${CFLAGS:-%{rpmcflags} -DNDEBUG -DQT_NO_DEBUG}" \
